@@ -1,0 +1,5 @@
+- pipeline.id: sentence-results
+  path.config: "/usr/share/logstash/pipeline/logstash.conf"
+
+- pipeline.id: word-checks
+  path.config: "/usr/share/logstash/pipeline/word_checks.conf"

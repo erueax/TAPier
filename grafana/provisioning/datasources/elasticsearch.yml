@@ -1,0 +1,11 @@
+apiVersion: 1
+datasources:
+  - name: word_checks
+    type: elasticsearch
+    uid: word_checks                 
+    access: proxy
+    url: http://elasticsearch:9200
+    isDefault: true
+    jsonData:
+      index: word_checks
+      timeField: ts

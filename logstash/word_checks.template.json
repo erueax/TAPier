@@ -1,0 +1,21 @@
+{
+  "index_patterns": ["word_checks"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "id":          { "type": "keyword" },
+        "sentence_id": { "type": "keyword" },
+        "user_id":     { "type": "keyword" },
+        "lemma":       { "type": "keyword" },
+        "surface":     { "type": "keyword" },
+        "pos":         { "type": "keyword" },
+        "pos_en":      { "type": "keyword" },
+        "cform":       { "type": "keyword" },
+        "conjugation": { "type": "keyword" },
+        "reading":     { "type": "keyword" },
+        "url":         { "type": "keyword" },
+        "ts":          { "type": "date", "format": "epoch_millis" }
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<link href="side_panel.css" rel="stylesheet" />
+</head>
+<body>
+	<header>
+		<h1>Sentence Inspector</h1>
+		<p id="source" class="source">Select text on the page to begin.</p>
+	</header>
+
+	<section id="selection" hidden>
+		<h2>Selected text</h2>
+		<blockquote id="excerpt"></blockquote>
+	</section>
+
+	<button id="send-btn" disabled>Send to TAPier</button>
+	<p id="send-status" class="status"></p>
+
+	<section id="result-section" hidden>
+		<h2>Result</h2>
+		<div id="result"></div>
+	</section>
+
+	<p id="empty" class="empty">
+		Highlight a sentence, then right-click &rarr; <em>Inspect selection</em>.
+		While this panel is open, new selections update it live.
+	</p>
+
+	<button id="stats-btn">Show my stats</button>
+	<section id="my-stats"></section>
+
+	<section id="recommendations" hidden>
+		<h2>Recommended for you</h2>
+		<div class="word-grid" id="rec-grid"></div>
+	</section>
+
+	<script src="side_panel.js"></script>
+</body>
+</html>

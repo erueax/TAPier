@@ -1,0 +1,120 @@
+{
+  "uid": "tapier-word-checks",
+  "title": "TAPier — Word Checks",
+  "tags": ["tapier"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "time": { "from": "now-90d", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "user_id",
+        "type": "query",
+        "datasource": { "type": "elasticsearch", "uid": "word_checks" },
+        "query": "{\"find\": \"terms\", \"field\": \"user_id\"}",
+        "includeAll": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Most-checked words",
+      "type": "table",
+      "datasource": { "type": "elasticsearch", "uid": "word_checks" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "user_id:$user_id",
+          "metrics": [ { "id": "1", "type": "count" } ],
+          "bucketAggs": [
+            { "id": "2", "type": "terms", "field": "lemma",
+              "settings": { "size": "50", "order": "desc", "orderBy": "_count" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Conjugation struggle",
+      "type": "barchart",
+      "datasource": { "type": "elasticsearch", "uid": "word_checks" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "user_id:$user_id AND conjugation:*",
+          "metrics": [ { "id": "1", "type": "count" } ],
+          "bucketAggs": [
+            { "id": "2", "type": "terms", "field": "conjugation",
+              "settings": { "size": "20", "order": "desc", "orderBy": "_count" } }
+          ]
+        }
+      ]
+    },
+    {
+	  "id": 3,
+	  "title": "Parts of speech",
+	  "type": "piechart",
+	  "datasource": { "type": "elasticsearch", "uid": "word_checks" },
+	  "gridPos": { "h": 9, "w": 8, "x": 0, "y": 9 },
+	  "options": {
+	    "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+	    "legend": { "displayMode": "list", "placement": "right", "values": ["value"] },
+	    "pieType": "pie"
+	  },
+	  "targets": [
+	    {
+	      "refId": "A",
+	      "query": "",
+	      "metrics": [ { "id": "1", "type": "count" } ],
+	      "bucketAggs": [
+	        { "id": "2", "type": "terms", "field": "pos_en",
+	          "settings": { "size": "15", "order": "desc", "orderBy": "_count" } }
+	      ]
+	    }
+	  ]
+	},
+    {
+      "id": 4,
+      "title": "Checks over time",
+      "type": "timeseries",
+      "datasource": { "type": "elasticsearch", "uid": "word_checks" },
+      "gridPos": { "h": 9, "w": 16, "x": 8, "y": 9 },
+      "targets": [
+        {
+          "refId": "A",
+          "query": "user_id:$user_id",
+          "metrics": [ { "id": "1", "type": "count" } ],
+          "bucketAggs": [
+            { "id": "2", "type": "date_histogram", "field": "ts",
+              "settings": { "interval": "auto" } }
+          ]
+        }
+      ]
+    },
+	{
+	  "id": 5,
+	  "title": "Total checks",
+	  "type": "stat",
+	  "datasource": { "type": "elasticsearch", "uid": "word_checks" },
+	  "gridPos": { "h": 4, "w": 24, "x": 0, "y": 18 },
+	  "options": {
+	    "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }
+	  },
+	  "targets": [
+	    {
+	      "refId": "A",
+	      "query": "",
+	      "metrics": [ { "id": "1", "type": "count" } ],
+	      "bucketAggs": [
+	        { "id": "2", "type": "date_histogram", "field": "ts",
+	          "settings": { "interval": "1d", "min_doc_count": "0" } }
+	      ]
+	    }
+	  ]
+	}
+  ]
+}
