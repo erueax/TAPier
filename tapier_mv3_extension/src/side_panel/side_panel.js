@@ -321,10 +321,23 @@ function renderMyStats(box, stats) {
 	);
 }
 
-document.getElementById("stats-btn").addEventListener("click", async () => {
-	const box = document.getElementById("my-stats");
-	box.textContent = "Loading…";
-	renderMyStats(box, await fetchMyStats());
+const statsBtn = document.getElementById("stats-btn");
+const statsBox = document.getElementById("my-stats");
+let statsShown = false;
+
+statsBtn.addEventListener("click", async () => {
+  statsShown = !statsShown;                 // flip on every click
+
+  if (!statsShown) {                        // second click: hide
+    statsBox.hidden = true;
+    statsBtn.textContent = "Show my stats";
+    return;
+  }
+
+  statsBox.hidden = false;                  // first click: show
+  statsBtn.textContent = "Hide my stats";
+  statsBox.textContent = "Loading…";
+  renderMyStats(statsBox, await fetchMyStats());
 });
 
 function renderMyStats(box, stats) {
