@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>TAPier settings</title>
+	<style>
+		body {
+			font: 14px system-ui, sans-serif;
+			padding: 16px;
+			max-width: 420px;
+		}
+
+		label {
+			display: block;
+			margin: 12px 0 4px;
+			font-weight: 600;
+		}
+
+		input {
+			width: 100%;
+			padding: 8px;
+			box-sizing: border-box;
+		}
+
+		button {
+			margin-top: 14px;
+			padding: 8px 14px;
+		}
+
+		.ok {
+			color: green;
+			margin-left: 8px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>TAPier settings</h1>
+	<label for="base">Server URL</label>
+	<input id="base" placeholder="http://localhost:8080" />
+	<label for="key">Access code</label>
+	<input id="key" type="password" placeholder="access code" />
+	<button id="save">Save</button><span id="status" class="ok"></span>
+	<script src="options.js"></script>
+</body>
+
+</html>

@@ -1,7 +1,22 @@
-const FLUENTBIT_URL = "http://localhost:9100/sentences"; // one-way send
-const INGEST_URL = "http://localhost:9100/sentences";
-const RESULT_URL = "http://localhost:9200/sentence_results/_doc";
-const ES_SEARCH = "http://localhost:9200/word_checks/_search";
+let SETTINGS = { base: "http://localhost:8080", key: "" };
+
+async function loadSettings() {
+	const s = await chrome.storage.local.get(["server_base", "demo_key"]);
+	SETTINGS.base = s.server_base || "http://localhost:8080";
+	SETTINGS.key = s.demo_key || "";
+}
+
+// Attach the access code to every request.
+function authHeaders(extra = {}) {
+	const h = { ...extra };
+	if (SETTINGS.key) h["X-Demo-Key"] = SETTINGS.key;
+	return h;
+}
+
+const ingestUrl = () => `${SETTINGS.base}/ingest/sentences`;
+const resultUrl = (id) => `${SETTINGS.base}/es/sentence_results/_doc/${id}`;
+const wordChecksUrl = () => `${SETTINGS.base}/es/word_checks/_search`;
+const recUrl = (id) => `${SETTINGS.base}/es/recommendations/_doc/${id}`;
 
 let current = null;   // current selection
 let latestId = null;  // to stop an older result from rendering over a newer one
@@ -34,9 +49,9 @@ const CFORM_EN = {
 
 async function emitWordCheck(tok, sentenceData) {
 	try {
-		await fetch(INGEST_URL, {
+		await fetch(ingestUrl(), {
 			method: "POST",
-			headers: { "Content-Type": "application/json; charset=utf-8" },
+			headers: authHeaders({ "Content-Type": "application/json; charset=utf-8" }),
 			body: JSON.stringify({
 				event_type: "word_check",              // ← the routing key
 				id: crypto.randomUUID(),               // unique per click
@@ -92,6 +107,7 @@ chrome.runtime.onMessage.addListener((msg) => {
 // Send current text, then poll for the result by its id.
 els.btn.addEventListener("click", async () => {
 	if (!current?.text) return;
+	await loadSettings();             // pick up the server URL / access code
 	const id = crypto.randomUUID();   // unique across instances
 	latestId = id;
 	els.btn.disabled = true;
@@ -118,18 +134,18 @@ els.btn.addEventListener("click", async () => {
 });
 
 async function sendToFluentBit(record) {
-	const res = await fetch(FLUENTBIT_URL, {
+	const res = await fetch(ingestUrl(), {
 		method: "POST",
-		headers: { "Content-Type": "application/json; charset=utf-8" },
+		headers: authHeaders({ "Content-Type": "application/json; charset=utf-8" }),
 		body: JSON.stringify(record),
 	});
-	if (!res.ok) throw new Error(`Fluent Bit HTTP ${res.status}`);
+	if (!res.ok) throw new Error(`ingest HTTP ${res.status}`);
 }
 
 // Poll the result store until Spark has written our id 
 async function awaitResult(id, { tries = 30, intervalMs = 1000 } = {}) {
 	for (let i = 0; i < tries; i++) {
-		const res = await fetch(`${RESULT_URL}/${id}`);
+		const res = await fetch(resultUrl(id), { headers: authHeaders() });
 		if (res.status === 200) {
 			const doc = await res.json();
 			if (doc.found) return doc._source;
@@ -266,9 +282,9 @@ async function fetchMyStats() {
 		},
 	};
 	try {
-		const res = await fetch(ES_SEARCH, {
+		const res = await fetch(wordChecksUrl(), {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: authHeaders({ "Content-Type": "application/json" }),
 			body: JSON.stringify(body),
 		});
 		if (!res.ok) return null;
@@ -287,57 +303,24 @@ function conjLabel(key) {
 	return key === "" ? "base form (no conjugation)" : key;
 }
 
-function renderMyStats(box, stats) {
-	box.replaceChildren();
-	if (!stats || (!stats.words.length && !stats.conjugations.length)) {
-		box.textContent = "No history yet — check a few words to see your stats.";
-		return;
-	}
-
-	const makeList = (title, buckets, labelFn) => {
-		const section = document.createElement("div");
-		const h = document.createElement("h2");
-		h.textContent = title;
-		section.appendChild(h);
-		const ul = document.createElement("ul");
-		ul.className = "stats-list";
-		buckets.forEach((b) => {
-			const li = document.createElement("li");
-			const name = document.createElement("span");
-			name.textContent = labelFn ? labelFn(b.key) : b.key;
-			const count = document.createElement("span");
-			count.className = "stats-count";
-			count.textContent = b.doc_count;
-			li.append(name, count);
-			ul.appendChild(li);
-		});
-		section.appendChild(ul);
-		return section;
-	};
-
-	box.append(
-		makeList("Your most-checked words", stats.words),
-		makeList("Your most-checked conjugations", stats.conjugations, conjLabel),
-	);
-}
-
 const statsBtn = document.getElementById("stats-btn");
 const statsBox = document.getElementById("my-stats");
 let statsShown = false;
 
 statsBtn.addEventListener("click", async () => {
-  statsShown = !statsShown;                 // flip on every click
+	statsShown = !statsShown;                 // flip on every click
 
-  if (!statsShown) {                        // second click: hide
-    statsBox.hidden = true;
-    statsBtn.textContent = "Show my stats";
-    return;
-  }
+	if (!statsShown) {                        // second click: hide
+		statsBox.hidden = true;
+		statsBtn.textContent = "Show my stats";
+		return;
+	}
 
-  statsBox.hidden = false;                  // first click: show
-  statsBtn.textContent = "Hide my stats";
-  statsBox.textContent = "Loading…";
-  renderMyStats(statsBox, await fetchMyStats());
+	statsBox.hidden = false;                  // first click: show
+	statsBtn.textContent = "Hide my stats";
+	statsBox.textContent = "Loading…";
+	await loadSettings();
+	renderMyStats(statsBox, await fetchMyStats());
 });
 
 function renderMyStats(box, stats) {
@@ -403,17 +386,18 @@ function renderMyStats(box, stats) {
 }
 
 async function loadRecommendations() {
+	await loadSettings();
 	const { user_id } = await chrome.storage.local.get("user_id");
 	try {
-		const r = await fetch(`http://localhost:9200/recommendations/_doc/${user_id}`);
+		const r = await fetch(recUrl(user_id), { headers: authHeaders() });
 		if (!r.ok) throw 0;
 		const doc = await r.json();
 		return doc._source.recs;                       // [{lemma, score}, ...]
 	} catch {
 		// cold start: most-checked words overall (your existing aggregation)
-		const r = await fetch(`http://localhost:9200/word_checks/_search`, {
+		const r = await fetch(wordChecksUrl(), {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: authHeaders({ "Content-Type": "application/json" }),
 			body: JSON.stringify({
 				size: 0,
 				aggs: { top: { terms: { field: "lemma", size: 10 } } }

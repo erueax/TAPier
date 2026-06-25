@@ -1,0 +1,17 @@
+{
+    email {$ACME_EMAIL:fake_guy@fake_address.com}
+}
+
+{$SITE_ADDRESS::8080} {
+    @authorized header X-Demo-Key {env.DEMO_KEY}
+    handle @authorized {
+        handle_path /ingest/* {
+            reverse_proxy fluent-bit:9100
+        }
+        handle_path /es/* {
+            reverse_proxy elasticsearch:9200
+        }
+    }
+    # Anything not matching @authorized falls through to here:
+    respond 403
+}

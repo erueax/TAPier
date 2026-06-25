@@ -8,9 +8,6 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy      # reject path writes straight to ES
-    ports:
-      - "9100:9100"
-      - "2100:2100"
     restart: unless-stopped
 
   kafka-1:
@@ -95,8 +92,6 @@ services:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     volumes:
       - es-data:/usr/share/elasticsearch/data   # persist indices, docs, templates
-    ports:
-      - "9200:9200"
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
       interval: 10s
@@ -154,11 +149,27 @@ services:
       ofelia.job-run.nightly-train.volume: "${PWD}/spark/jobs:/opt/spark/work-dir/jobs:ro"
       ofelia.job-run.nightly-train.command: "/opt/spark/bin/spark-submit /opt/spark/work-dir/jobs/train.py"
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    depends_on:
+      - fluent-bit
+      - elasticsearch
+    environment:
+      - DEMO_KEY=letmein            # change this
+    ports:
+      - "8080:8080"                 # local HTTP entry point
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
   es-data:  
   grafana-data:    
   models:
+  caddy-data:
+  caddy-config:
 
 
 

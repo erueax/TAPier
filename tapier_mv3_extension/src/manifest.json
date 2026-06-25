@@ -4,12 +4,18 @@
 	"version": "1.0.0",
 	"description": "The TAPier extension, missionary of Japanese learning.",
 	"icons": {
-        "16": "icons/icon16.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
-    },
-	"permissions": ["sidePanel", "contextMenus", "storage"],
-	"host_permissions": ["<all_urls>"],
+		"16": "icons/icon16.png",
+		"48": "icons/icon48.png",
+		"128": "icons/icon128.png"
+	},
+	"permissions": [
+		"sidePanel",
+		"contextMenus",
+		"storage"
+	],
+	"host_permissions": [
+		"<all_urls>"
+	],
 	"background": {
 		"service_worker": "background.js"
 	},
@@ -19,10 +25,18 @@
 	"side_panel": {
 		"default_path": "side_panel/side_panel.html"
 	},
+	"options_ui": {
+		"page": "options.html",
+		"open_in_tab": true
+	},
 	"content_scripts": [
 		{
-			"matches": ["<all_urls>"],
-			"js": ["content_script.js"],
+			"matches": [
+				"<all_urls>"
+			],
+			"js": [
+				"content_script.js"
+			],
 			"run_at": "document_idle"
 		}
 	]
