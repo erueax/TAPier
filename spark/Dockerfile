@@ -10,6 +10,9 @@ RUN apt-get update && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
     rm -rf /var/lib/apt/lists/*
  
+# write directories for checkpoints
+RUN mkdir -p /checkpoints && chown -R spark:spark /checkpoints
+
 # Python dependencies (fugashi, UniDic, SudachiPy).
 COPY dependencies ./
 RUN pip install --no-cache-dir --upgrade pip && \
