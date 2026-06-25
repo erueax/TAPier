@@ -3,6 +3,10 @@
 }
 
 {$SITE_ADDRESS::8080} {
+    handle /grafana/* {
+        reverse_proxy grafana:3000
+    }
+
     @authorized header X-Demo-Key {env.DEMO_KEY}
     handle @authorized {
         handle_path /ingest/* {

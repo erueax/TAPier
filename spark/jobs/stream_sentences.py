@@ -152,6 +152,6 @@ query = (results.writeStream
     .format("kafka")
     .option("kafka.bootstrap.servers", "kafka-1:29092")
     .option("topic", "results")
-    .option("checkpointLocation", "/tmp/checkpoints/results")
+    .option("checkpointLocation", "/checkpoints/results")
     .start())
 query.awaitTermination()

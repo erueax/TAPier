@@ -67,6 +67,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./spark/jobs:/opt/spark/work-dir/jobs:ro
+      - spark-checkpoints:/checkpoints       # for persistency
     command: ["/opt/spark/bin/spark-submit", "jobs/stream_sentences.py"]
 
   spark-train:
@@ -156,9 +157,13 @@ services:
       - fluent-bit
       - elasticsearch
     environment:
-      - DEMO_KEY=letmein            # change this
+      - DEMO_KEY=${DEMO_KEY}            
+      - SITE_ADDRESS=${SITE_ADDRESS}
+      - ACME_EMAIL=${ADMIN_EMAIL}
     ports:
-      - "8080:8080"                 # local HTTP entry point
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
@@ -170,6 +175,8 @@ volumes:
   models:
   caddy-data:
   caddy-config:
+  spark-checkpoints:
+
 
 
 
