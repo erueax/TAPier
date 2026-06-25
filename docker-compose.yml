@@ -121,9 +121,11 @@ services:
       elasticsearch:
         condition: service_healthy
     environment:
-      GF_SECURITY_ADMIN_USER: tapier
-      GF_SECURITY_ADMIN_PASSWORD: tapier
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_NAME}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
       GF_USERS_DEFAULT_THEME: light
+      GF_SERVER_ROOT_URL: "${SITE_ADDRESS}/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
